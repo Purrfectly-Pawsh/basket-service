@@ -1,11 +1,15 @@
 package de.htw.basketmicroservice.core.domain.service.impl;
 
-import de.htw.basketmicroservice.core.domain.model.Basket;
 import de.htw.basketmicroservice.core.domain.model.BasketItem;
-import de.htw.basketmicroservice.core.domain.service.impl.exception.BasketNotFoundException;
+import de.htw.basketmicroservice.core.domain.model.BasketItemKey;
+import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketRepository;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
 
 @Service
 public class BasketService implements IBasketService {
@@ -17,20 +21,46 @@ public class BasketService implements IBasketService {
     }
 
     @Override
-    public void createBasket(Long userId) {
-        basketRepository.save(new Basket(userId));
+    public void addToBasket(BasketItem item) {
+        if (isAlreadyInBasket(item)) {
+            updateQuantity(item);
+        } else {
+            basketRepository.save(item);
+        }
     }
 
     @Override
-    public void addBasketItemToBasket(BasketItem basketItem, Long userId) {
-        Basket basket = basketRepository.findById(userId).orElseThrow(() -> new BasketNotFoundException(userId));
-        basket.addBasketItem(basketItem);
-        basketRepository.save(basket);
+    public BasketDTO getBasket(UUID basketId) {
+        List<BasketItem> items = basketRepository.getItemsByBasketId(basketId);
+        return BasketDTO.builder()
+                .basketId(basketId.toString())
+                .totalPrice(calculateTotalPrice(items))
+                .basketItems(items)
+                .build();
     }
 
-    @Override
-    public Basket getBasket(Long userId) {
-        return basketRepository.findById(userId).orElseThrow(() -> new BasketNotFoundException(userId));
+    private boolean isAlreadyInBasket(BasketItem item) {
+        return basketRepository.findById(makePrimaryKey(item)).isPresent();
+    }
+
+    private void updateQuantity(BasketItem newItem) {
+        BasketItem oldItem = basketRepository.findById(makePrimaryKey(newItem)).get();
+        newItem.setQuantity(oldItem.getQuantity() + newItem.getQuantity());
+        basketRepository.save(newItem);
+    }
+
+    private BasketItemKey makePrimaryKey(BasketItem item) {
+        return new BasketItemKey(item.getBasketId(), item.getBasketItemId());
+    }
+
+    private BigDecimal calculateTotalPrice(List<BasketItem> items) {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (BasketItem item : items) {
+            BigDecimal quantity = new BigDecimal(item.getQuantity());
+            BigDecimal unitPrice = item.getUnitPrice();
+            totalPrice = totalPrice.add(quantity.multiply(unitPrice));
+        }
+        return totalPrice;
     }
 
 }

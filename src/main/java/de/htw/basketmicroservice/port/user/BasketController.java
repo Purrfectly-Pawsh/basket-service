@@ -1,9 +1,10 @@
 package de.htw.basketmicroservice.port.user;
 
-
-import de.htw.basketmicroservice.core.domain.model.Basket;
+import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/v1")
@@ -16,8 +17,9 @@ public class BasketController {
         this.basketService = basketService;
     }
 
-    @GetMapping("/baskets/{userId}")
-    public Basket getBasket(@PathVariable Long userId) {
-        return basketService.getBasket(userId);}
+    @GetMapping("/baskets/{basketId}")
+    public BasketDTO getBasket(@PathVariable UUID basketId) {
+        return basketService.getBasket(basketId);
+    }
 
 }
