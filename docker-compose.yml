@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:13
+    container_name: postgres-basket
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./:/app/
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    networks:
+      - basket-nw
+
+  rabbitmq-container:
+    image: rabbitmq:3.11-management
+    hostname: rabbitmq-container
+    ports:
+     - "15672:15672"
+     - "5672:5672"
+    networks:
+      - service-nw
+
+  basket-service:
+    command: java -jar target/BasketMicroService-0.0.1-SNAPSHOT.jar
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    depends_on:
+      - database
+      - rabbitmq-container
+    volumes:
+      - ./:/app/app
+    links:
+      - database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/postgres
+      - SPRING_RABBITMQ_HOST=rabbitmq-container
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - basket-nw
+      - service-nw
+
+networks:
+  basket-nw:
+    name: basket-nw
+  service-nw:
+    name: service-nw
+    external: true
