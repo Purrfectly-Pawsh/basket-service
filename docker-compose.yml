@@ -12,6 +12,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
+    networks:
+      - basket-nw
 
   rabbitmq-container:
     image: rabbitmq:3.11-management
@@ -19,6 +21,8 @@ services:
     ports:
      - "15672:15672"
      - "5672:5672"
+    networks:
+      - service-nw
 
   basket-service:
     command: java -jar target/BasketMicroService-0.0.1-SNAPSHOT.jar
@@ -26,7 +30,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
     depends_on:
       - database
       - rabbitmq-container
@@ -34,12 +38,17 @@ services:
       - ./:/app/app
     links:
       - database
-
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/postgres
-      - spring_rabbitmq_host=rabbitmq-container
-      - spring_rabbitmq_port=5672
+      - SPRING_RABBITMQ_HOST=rabbitmq-container
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - basket-nw
+      - service-nw
 
 networks:
-  default:
+  basket-nw:
+    name: basket-nw
+  service-nw:
     name: service-nw
+    external: true
