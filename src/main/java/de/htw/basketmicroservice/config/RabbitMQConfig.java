@@ -15,25 +15,12 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String CREATE_BASKET_QUEUE = "create_basket_queue";
     public static final String ADD_PRODUCT_QUEUE = "add_product_queue";
-
-    public static final String BASKET_EXCHANGE = "basket_exchange";
     public static final String PRODUCT_EXCHANGE = "product_exchange";
-
-    @Bean
-    public Queue createBasketQueue() {
-        return new Queue(CREATE_BASKET_QUEUE, false);
-    }
 
     @Bean
     public Queue addProductQueue() {
         return new Queue(ADD_PRODUCT_QUEUE, false);
-    }
-
-    @Bean
-    public TopicExchange basketTopicExchange() {
-        return new TopicExchange(BASKET_EXCHANGE);
     }
 
     @Bean
@@ -44,11 +31,6 @@ public class RabbitMQConfig {
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public Binding bindCreateBasketQueue() {
-        return BindingBuilder.bind(createBasketQueue()).to(basketTopicExchange()).with("basket.create");
     }
 
     @Bean
