@@ -18,7 +18,7 @@ public class ProductMessage {
     private String name;
     private BigDecimal unitPrice;
     private String description;
-    private String imageLink;
+    private String imageUrl;
     private int quantity;
 
 }
