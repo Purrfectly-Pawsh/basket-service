@@ -12,7 +12,7 @@ public class ProductMapper {
                 .basketId(UUID.fromString(message.getUserId()))
                 .name(message.getName())
                 .unitPrice(message.getUnitPrice())
-                .imageUrl(message.getImageLink())
+                .imageUrl(message.getImageUrl())
                 .quantity(message.getQuantity())
                 .build();
     }
