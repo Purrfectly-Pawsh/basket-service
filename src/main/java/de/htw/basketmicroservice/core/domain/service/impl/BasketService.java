@@ -8,25 +8,18 @@ import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 
 @Service
 public class BasketService implements IBasketService {
 
+    private static final int REMOVE_ONE = -1;
     private final IBasketRepository basketRepository;
 
     public BasketService(IBasketRepository basketRepository) {
         this.basketRepository = basketRepository;
-    }
-
-    @Override
-    public void addToBasket(BasketItem item) {
-        if (isAlreadyInBasket(item)) {
-            updateQuantity(item);
-        } else {
-            basketRepository.save(item);
-        }
     }
 
     @Override
@@ -39,18 +32,34 @@ public class BasketService implements IBasketService {
                 .build();
     }
 
-    private boolean isAlreadyInBasket(BasketItem item) {
-        return basketRepository.findById(makePrimaryKey(item)).isPresent();
+    @Override
+    public void addToBasket(BasketItem item) {
+        BasketItemKey itemKey = item.getKey();
+        if (itemExistsInBasket(itemKey)) {
+            updateQuantity(itemKey, item.getQuantity());
+        } else {
+            basketRepository.save(item);
+        }
     }
 
-    private void updateQuantity(BasketItem newItem) {
-        BasketItem oldItem = basketRepository.findById(makePrimaryKey(newItem)).get();
-        newItem.setQuantity(oldItem.getQuantity() + newItem.getQuantity());
-        basketRepository.save(newItem);
+    @Override
+    public BasketDTO removeBasketItem(UUID basketId, UUID itemId) {
+        BasketItemKey key = new BasketItemKey(basketId, itemId);
+        if (itemExistsInBasket(key)) {
+            updateQuantity(key, REMOVE_ONE);
+        }
+        return getBasket(basketId);
     }
 
-    private BasketItemKey makePrimaryKey(BasketItem item) {
-        return new BasketItemKey(item.getBasketId(), item.getBasketItemId());
+    private void updateQuantity(BasketItemKey key, int additional) throws NoSuchElementException {
+        BasketItem itemToUpdate = basketRepository.findById(key).get();
+        int newQuantity = itemToUpdate.getQuantity() + additional;
+        if (newQuantity > 0) {
+            itemToUpdate.setQuantity(newQuantity);
+            basketRepository.save(itemToUpdate);
+        } else {
+            basketRepository.delete(itemToUpdate);
+        }
     }
 
     private BigDecimal calculateTotalPrice(List<BasketItem> items) {
@@ -61,6 +70,10 @@ public class BasketService implements IBasketService {
             totalPrice = totalPrice.add(quantity.multiply(unitPrice));
         }
         return totalPrice;
+    }
+
+    private boolean itemExistsInBasket(BasketItemKey key) {
+        return basketRepository.findById(key).isPresent();
     }
 
 }
