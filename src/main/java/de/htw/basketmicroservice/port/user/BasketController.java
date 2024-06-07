@@ -8,7 +8,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1")
-@CrossOrigin(origins = "*")
 public class BasketController {
 
     private final IBasketService basketService;
