@@ -11,4 +11,5 @@ public interface IBasketService {
 
    BasketDTO getBasket(UUID userId);
 
+   BasketDTO removeBasketItem(UUID basketId, UUID itemId);
 }

@@ -21,4 +21,8 @@ public class BasketController {
         return basketService.getBasket(basketId);
     }
 
+    @DeleteMapping("baskets/{basketId}/items/{itemId}")
+    public BasketDTO removeItem(@PathVariable UUID basketId, @PathVariable UUID itemId) {
+        return basketService.removeBasketItem(basketId, itemId);
+    }
 }

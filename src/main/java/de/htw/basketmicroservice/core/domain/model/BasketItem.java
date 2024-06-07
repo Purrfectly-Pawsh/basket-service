@@ -31,4 +31,8 @@ public class BasketItem {
     private String imageUrl;
     private int quantity;
 
+    public BasketItemKey getKey() {
+         return new BasketItemKey(basketId, basketItemId);
+    }
+
 }
