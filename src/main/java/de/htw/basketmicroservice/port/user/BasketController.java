@@ -23,6 +23,15 @@ public class BasketController {
 
     @DeleteMapping("baskets/{basketId}/items/{itemId}")
     public BasketDTO removeItem(@PathVariable UUID basketId, @PathVariable UUID itemId) {
-        return basketService.removeBasketItem(basketId, itemId);
+        basketService.removeBasketItem(basketId, itemId);
+        return basketService.getBasket(basketId);
     }
+
+    @PutMapping("baskets/{basketId}/items/{itemId}")
+    public BasketDTO changeItemAmount(
+            @PathVariable UUID basketId, @PathVariable UUID itemId, @RequestBody Integer amount) {
+        basketService.changeBasketItemAmount(basketId, itemId, amount);
+        return basketService.getBasket(basketId);
+    }
+
 }
