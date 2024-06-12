@@ -29,7 +29,7 @@ public class BasketController {
 
     @PutMapping("baskets/{basketId}/items/{itemId}")
     public BasketDTO changeItemQuantity(
-            @PathVariable UUID basketId, @PathVariable UUID itemId, @RequestBody Integer quantity) {
+            @PathVariable UUID basketId, @PathVariable UUID itemId, @RequestBody int quantity) {
         basketService.changeBasketItemQuantity(basketId, itemId, quantity);
         return basketService.getBasket(basketId);
     }

@@ -48,7 +48,7 @@ public class BasketService implements IBasketService {
     }
 
     @Override
-    public void changeBasketItemQuantity(UUID basketId, UUID itemId, Integer quantity) {
+    public void changeBasketItemQuantity(UUID basketId, UUID itemId, int quantity) {
         BasketItemKey itemKey = new BasketItemKey(basketId, itemId);
         if (itemExistsInBasket(itemKey)) {
             updateQuantityBy(quantity, itemKey);
