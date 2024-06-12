@@ -35,22 +35,29 @@ public class BasketService implements IBasketService {
     public void addToBasket(BasketItem item) {
         BasketItemKey itemKey = item.getKey();
         if (itemExistsInBasket(itemKey)) {
-            updateQuantity(itemKey, item.getQuantity());
+            updateQuantityBy(item.getQuantity(), itemKey);
         } else {
             basketRepository.save(item);
         }
     }
 
     @Override
-    public BasketDTO removeBasketItem(UUID basketId, UUID itemId) {
-        BasketItemKey key = new BasketItemKey(basketId, itemId);
-        basketRepository.deleteById(key);
-        return getBasket(basketId);
+    public void removeBasketItem(UUID basketId, UUID itemId) {
+        BasketItemKey itemKey = new BasketItemKey(basketId, itemId);
+        basketRepository.deleteById(itemKey);
     }
 
-    private void updateQuantity(BasketItemKey key, int additional) throws NoSuchElementException {
+    @Override
+    public void changeBasketItemQuantity(UUID basketId, UUID itemId, Integer quantity) {
+        BasketItemKey itemKey = new BasketItemKey(basketId, itemId);
+        if (itemExistsInBasket(itemKey)) {
+            updateQuantityBy(quantity, itemKey);
+        }
+    }
+
+    private void updateQuantityBy(int quantity, BasketItemKey key) throws NoSuchElementException {
         BasketItem itemToUpdate = basketRepository.findById(key).get();
-        int newQuantity = itemToUpdate.getQuantity() + additional;
+        int newQuantity = itemToUpdate.getQuantity() + quantity;
         if (newQuantity > 0) {
             itemToUpdate.setQuantity(newQuantity);
             basketRepository.save(itemToUpdate);

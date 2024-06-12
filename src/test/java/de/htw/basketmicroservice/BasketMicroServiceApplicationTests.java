@@ -53,21 +53,23 @@ class BasketMicroServiceApplicationTests {
     }
 
     @Test
-    void shouldSaveGivenItemUnchangedIfItemDoesntExistInBasket() {
-        int catTreeQuantity = catTree.getQuantity();
+    void shouldSaveGivenItemUnchangedQuantityIfItemDoesntExistInBasket() {
+        catTree.setQuantity(1);
+        int expectedQuantity = 1;
+
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.empty());
 
         basketService.addToBasket(catTree);
 
         ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
         verify(basketRepository, times(1)).save(argument.capture());
-        Assertions.assertEquals(catTreeQuantity, argument.getValue().getQuantity());
+        Assertions.assertEquals(expectedQuantity, argument.getValue().getQuantity());
     }
 
     @Test
     void shouldSaveItemWithUpdatedQuantityIfItemAlreadyExistsInBasket() {
-        int catTreeQuantity = catTree.getQuantity();
-        int expectedQuantity = catTreeQuantity * 2;
+        catTree.setQuantity(1);
+        int expectedQuantity = 2;
 
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.of(catTree));
 
@@ -83,6 +85,7 @@ class BasketMicroServiceApplicationTests {
         int catTreeQuantity = 4;
         catTree.setQuantity(catTreeQuantity);
         BigDecimal catTreePrice = catTree.getUnitPrice();
+        BigDecimal expectedPrice = catTreePrice.multiply(BigDecimal.valueOf(catTreeQuantity));
 
         List<BasketItem> basketItems = new ArrayList<>();
         basketItems.add(catTree);
@@ -90,9 +93,66 @@ class BasketMicroServiceApplicationTests {
 
         BasketDTO basket = basketService.getBasket(basketOne);
 
-        BigDecimal expectedPrice = catTreePrice.multiply(BigDecimal.valueOf(catTreeQuantity));
         Assertions.assertEquals(expectedPrice, basket.getTotalPrice());
     }
 
+    @Test
+    void shouldAddQuantityCorrectlyWhenItemExistsInBasket() {
+        catTree.setQuantity(1);
+        int addOne = 1;
+        int expectedQuantity = 2;
 
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
+
+        ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
+        verify(basketRepository, times(1)).save(argument.capture());
+        Assertions.assertEquals(expectedQuantity, argument.getValue().getQuantity());
+
+    }
+
+    @Test
+    void shouldReduceQuantityCorrectlyWhenItemExistsInBasket() {
+        catTree.setQuantity(4);
+        int reduceOne = -1;
+        int expectedQuantity = 3;
+
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+
+        ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
+        verify(basketRepository, times(1)).save(argument.capture());
+        Assertions.assertEquals(expectedQuantity, argument.getValue().getQuantity());
+
+    }
+
+    @Test
+    void shouldNotReduceQuantityWhenItemDoesExistInBasketWithAmountOne() {
+        catTree.setQuantity(1);
+        int reduceOne = -1;
+        int expectedQuantity = 1;
+
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+
+        verify(basketRepository, times(0)).save(any(BasketItem.class));
+        verify(basketRepository, times(0)).delete(any(BasketItem.class));
+
+    }
+
+    @Test
+    void shouldNotCreateIfItemDoesNotExistInBasket() {
+        int addOne = 1;
+
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.empty());
+
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
+
+        verify(basketRepository, times(0)).save(any(BasketItem.class));
+        verify(basketRepository, times(0)).delete(any(BasketItem.class));
+
+    }
 }
