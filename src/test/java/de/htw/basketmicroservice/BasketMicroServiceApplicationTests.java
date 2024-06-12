@@ -99,12 +99,12 @@ class BasketMicroServiceApplicationTests {
     @Test
     void shouldAddQuantityCorrectlyWhenItemExistsInBasket() {
         catTree.setQuantity(1);
-        int addOne = 1;
+        int newQuantity = 2;
         int expectedQuantity = 2;
 
-        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.of(catTree));
 
-        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), newQuantity);
 
         ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
         verify(basketRepository, times(1)).save(argument.capture());
@@ -115,12 +115,12 @@ class BasketMicroServiceApplicationTests {
     @Test
     void shouldReduceQuantityCorrectlyWhenItemExistsInBasket() {
         catTree.setQuantity(4);
-        int reduceOne = -1;
+        int newQuantity = 3;
         int expectedQuantity = 3;
 
-        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.of(catTree));
 
-        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), newQuantity);
 
         ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
         verify(basketRepository, times(1)).save(argument.capture());
@@ -129,14 +129,12 @@ class BasketMicroServiceApplicationTests {
     }
 
     @Test
-    void shouldNotReduceQuantityWhenItemDoesExistInBasketWithAmountOne() {
-        catTree.setQuantity(1);
-        int reduceOne = -1;
-        int expectedQuantity = 1;
+    void shouldNotCreateIfItemDoesNotExistInBasket() {
+        int newQuantity = 1;
 
-        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.empty());
 
-        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), newQuantity);
 
         verify(basketRepository, times(0)).save(any(BasketItem.class));
         verify(basketRepository, times(0)).delete(any(BasketItem.class));
@@ -144,15 +142,25 @@ class BasketMicroServiceApplicationTests {
     }
 
     @Test
-    void shouldNotCreateIfItemDoesNotExistInBasket() {
-        int addOne = 1;
+    void shouldNotUpdateIfNewQuantityIsZero() {
+        catTree.setQuantity(1);
+        int newQuantity = 0;
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.of(catTree));
 
-        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.empty());
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), newQuantity);
 
-        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
-
-        verify(basketRepository, times(0)).save(any(BasketItem.class));
-        verify(basketRepository, times(0)).delete(any(BasketItem.class));
-
+        verify(basketRepository, times(0)).save(ArgumentMatchers.any());
     }
+
+    @Test
+    void shouldNotUpdateIfNewQuantityIsNegative() {
+        catTree.setQuantity(1);
+        int newQuantity = -1;
+        when(basketRepository.findById(catTreeKey)).thenReturn(Optional.of(catTree));
+
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), newQuantity);
+
+        verify(basketRepository, times(0)).save(ArgumentMatchers.any());
+    }
+
 }
