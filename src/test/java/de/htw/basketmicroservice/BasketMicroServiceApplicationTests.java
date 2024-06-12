@@ -104,7 +104,7 @@ class BasketMicroServiceApplicationTests {
 
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
 
-        basketService.changeBasketItemAmount(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
 
         ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
         verify(basketRepository, times(1)).save(argument.capture());
@@ -120,7 +120,7 @@ class BasketMicroServiceApplicationTests {
 
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
 
-        basketService.changeBasketItemAmount(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
 
         ArgumentCaptor<BasketItem> argument = ArgumentCaptor.forClass(BasketItem.class);
         verify(basketRepository, times(1)).save(argument.capture());
@@ -136,7 +136,7 @@ class BasketMicroServiceApplicationTests {
 
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.ofNullable(catTree));
 
-        basketService.changeBasketItemAmount(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), reduceOne);
 
         verify(basketRepository, times(0)).save(any(BasketItem.class));
         verify(basketRepository, times(0)).delete(any(BasketItem.class));
@@ -149,7 +149,7 @@ class BasketMicroServiceApplicationTests {
 
         when(basketRepository.findById(catTreeKey)).thenReturn(Optional.empty());
 
-        basketService.changeBasketItemAmount(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
+        basketService.changeBasketItemQuantity(catTree.getBasketId(), catTree.getBasketItemId(), addOne);
 
         verify(basketRepository, times(0)).save(any(BasketItem.class));
         verify(basketRepository, times(0)).delete(any(BasketItem.class));
