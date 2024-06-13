@@ -1,5 +1,6 @@
 package de.htw.basketmicroservice.port.user;
 
+import de.htw.basketmicroservice.core.domain.model.BasketItem;
 import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +30,8 @@ public class BasketController {
 
     @PutMapping("baskets/{basketId}/items/{itemId}")
     public BasketDTO changeItemQuantity(
-            @PathVariable UUID basketId, @PathVariable UUID itemId, @RequestBody Integer quantity) {
-        basketService.changeBasketItemQuantity(basketId, itemId, quantity);
+            @PathVariable UUID basketId, @PathVariable UUID itemId, @RequestBody BasketItem basketItem) {
+        basketService.changeBasketItemQuantity(basketId, itemId, basketItem.getQuantity());
         return basketService.getBasket(basketId);
     }
 
