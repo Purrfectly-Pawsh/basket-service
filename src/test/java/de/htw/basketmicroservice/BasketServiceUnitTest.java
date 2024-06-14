@@ -21,7 +21,7 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BasketMicroServiceApplicationTests {
+class BasketServiceUnitTest {
 
     @Mock
     IBasketRepository basketRepository;
