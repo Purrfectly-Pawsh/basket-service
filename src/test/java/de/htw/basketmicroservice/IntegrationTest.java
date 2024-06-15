@@ -1,31 +1,26 @@
 package de.htw.basketmicroservice;
 
 import de.htw.basketmicroservice.core.domain.model.BasketItem;
+import de.htw.basketmicroservice.core.domain.model.BasketItemKey;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.post;
+import static io.restassured.RestAssured.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.AssertionsForClassTypes.offset;
+import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -36,7 +31,7 @@ public class IntegrationTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:12");
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:13");
 
     @Autowired
     private IBasketRepository basketRepository;
@@ -59,36 +54,48 @@ public class IntegrationTest {
 
     private void fillDatabase() {
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(1L, 1L))
-                .basketId(BASKET_ID_1)
+                .basketItemId(BASKET_ITEM_ID_1)
+                .basketId(BASKET_ID_ALICE)
                 .name("item1")
-                .unitPrice(BigDecimal.valueOf(19.99))
+                .unitPrice(BigDecimal.valueOf(10.00))
                 .imageUrl("http://dummy.url")
                 .quantity(1)
                 .build());
 
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(2L, 1L))
-                .basketId(BASKET_ID_1)
+                .basketItemId(BASKET_ITEM_ID_2)
+                .basketId(BASKET_ID_ALICE)
                 .name("item2")
-                .unitPrice(BigDecimal.valueOf(29.99))
+                .unitPrice(BigDecimal.valueOf(20.00))
                 .imageUrl("http://dummy.url2")
                 .quantity(2)
                 .build());
 
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(3L, 1L))
-                .basketId(BASKET_ID_2)
+                .basketItemId(BASKET_ITEM_ID_3)
+                .basketId(BASKET_ID_ALICE)
                 .name("item3")
-                .unitPrice(BigDecimal.valueOf(39.99))
+                .unitPrice(BigDecimal.valueOf(30.00))
+                .imageUrl("http://dummy.url3")
+                .quantity(3)
+                .build());
+
+        basketRepository.save(BasketItem.builder()
+                .basketItemId(BASKET_ITEM_ID_3)
+                .basketId(BASKET_ID_BOB)
+                .name("item3")
+                .unitPrice(BigDecimal.valueOf(30.00))
                 .imageUrl("http://dummy.url3")
                 .quantity(3)
                 .build());
 
     }
 
-    private static final UUID BASKET_ID_1 = new UUID(10L, 10L);
-    private static final UUID BASKET_ID_2 = new UUID(11L, 11L);
+    private static final UUID BASKET_ID_ALICE = new UUID(10L, 10L);
+    private static final UUID BASKET_ID_BOB = new UUID(11L, 11L);
+    private static final UUID BASKET_ITEM_ID_1 = new UUID(1L, 1L);
+    private static final UUID BASKET_ITEM_ID_2 = new UUID(2L, 1L);
+    private static final UUID BASKET_ITEM_ID_3 = new UUID(3L, 1L);
 
 
     @AfterEach
@@ -103,16 +110,68 @@ public class IntegrationTest {
     }
 
     @Test
-    void shouldReturnAllBasketItemsFromBasket() {
-
+    void shouldReturnAllBasketItemsFromCorrectBasket() {
         given()
                 .contentType(ContentType.JSON)
-                .get("/v1/baskets/" + BASKET_ID_1)
+                .get("/v1/baskets/" + BASKET_ID_ALICE)
                 .then()
-                .statusCode(200);
-                //figure out how to check body content
-
+                .statusCode(both(greaterThanOrEqualTo(200)).and(lessThan(300)))
+                .body("basketItems.basketItemId",
+                        hasItems(
+                                BASKET_ITEM_ID_1.toString(),
+                                BASKET_ITEM_ID_2.toString()
+                        )
+                );
     }
 
+    @Test
+    void shouldReturnEmptyBasketWhenLastItemIsDeleted() {
+        given()
+                .contentType(ContentType.JSON)
+                .delete("v1/baskets/" + BASKET_ID_BOB + "/items/" + BASKET_ITEM_ID_3)
+                .then()
+                .statusCode(both(greaterThanOrEqualTo(200)).and(lessThan(300)))
+                .body("basketId", equalTo(BASKET_ID_BOB.toString()))
+                .and()
+                .body("totalPrice", equalTo(0))
+                .and()
+                .body("basketItems", hasSize(0));
+    }
+
+    @Test
+    void shouldRemoveCorrectItemFromDatabaseWhenItIsDeleted() {
+        given()
+                .contentType(ContentType.JSON)
+                .delete("v1/baskets/" + BASKET_ID_BOB + "/items/" + BASKET_ITEM_ID_3);
+
+        assertThat(basketRepository.findById(new BasketItemKey(BASKET_ID_ALICE, BASKET_ITEM_ID_1))).isNotEmpty();
+        assertThat(basketRepository.findById(new BasketItemKey(BASKET_ID_ALICE, BASKET_ITEM_ID_2))).isNotEmpty();
+        assertThat(basketRepository.findById(new BasketItemKey(BASKET_ID_ALICE, BASKET_ITEM_ID_3))).isNotEmpty();
+        assertThat(basketRepository.findById(new BasketItemKey(BASKET_ID_BOB, BASKET_ITEM_ID_3))).isEmpty();
+    }
+
+    @Test
+    void shouldReturnCorrectlyUpdatedBasketWhenItemQuantityIsChanged() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(BasketItem.builder()
+                        .basketItemId(BASKET_ITEM_ID_3)
+                        .basketId(BASKET_ID_BOB)
+                        .name("item3")
+                        .unitPrice(BigDecimal.valueOf(30.00))
+                        .imageUrl("http://dummy.url3")
+                        .quantity(5)
+                        .build())
+                .put("v1/baskets/" + BASKET_ID_BOB + "/items/" + BASKET_ITEM_ID_3)
+                .then()
+                .statusCode(both(greaterThanOrEqualTo(200)).and(lessThan(300)))
+                .body("basketId", equalTo(BASKET_ID_BOB.toString()))
+                .and()
+                .body("totalPrice", equalTo(150F))
+                .and()
+                .body("basketItems", hasSize(1))
+                .and()
+                .body("basketItems[0].quantity", equalTo(5));
+    }
 
 }
