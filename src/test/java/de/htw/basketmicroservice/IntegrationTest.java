@@ -4,6 +4,7 @@ import de.htw.basketmicroservice.core.domain.model.BasketItem;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.ResponseBody;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +18,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.post;
+import static io.restassured.RestAssured.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.AssertionsForClassTypes.offset;
+import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -59,7 +57,7 @@ public class IntegrationTest {
 
     private void fillDatabase() {
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(1L, 1L))
+                .basketItemId(BASKET_ITEM_ID_1)
                 .basketId(BASKET_ID_1)
                 .name("item1")
                 .unitPrice(BigDecimal.valueOf(19.99))
@@ -68,7 +66,7 @@ public class IntegrationTest {
                 .build());
 
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(2L, 1L))
+                .basketItemId(BASKET_ITEM_ID_2)
                 .basketId(BASKET_ID_1)
                 .name("item2")
                 .unitPrice(BigDecimal.valueOf(29.99))
@@ -77,7 +75,7 @@ public class IntegrationTest {
                 .build());
 
         basketRepository.save(BasketItem.builder()
-                .basketItemId(new UUID(3L, 1L))
+                .basketItemId(BASKET_ITEM_ID_3)
                 .basketId(BASKET_ID_2)
                 .name("item3")
                 .unitPrice(BigDecimal.valueOf(39.99))
@@ -89,6 +87,9 @@ public class IntegrationTest {
 
     private static final UUID BASKET_ID_1 = new UUID(10L, 10L);
     private static final UUID BASKET_ID_2 = new UUID(11L, 11L);
+    private static final UUID BASKET_ITEM_ID_1 = new UUID(1L, 1L);
+    private static final UUID BASKET_ITEM_ID_2 = new UUID(2L, 1L);
+    private static final UUID BASKET_ITEM_ID_3 = new UUID(3L, 1L);
 
 
     @AfterEach
@@ -105,14 +106,18 @@ public class IntegrationTest {
     @Test
     void shouldReturnAllBasketItemsFromBasket() {
 
+
         given()
                 .contentType(ContentType.JSON)
                 .get("/v1/baskets/" + BASKET_ID_1)
                 .then()
-                .statusCode(200);
-                //figure out how to check body content
-
+                .statusCode(200)
+                .body("basketItems.basketItemId",
+                        hasItems(
+                                BASKET_ITEM_ID_1.toString(),
+                                BASKET_ITEM_ID_2.toString()
+                        )
+                );
     }
-
 
 }
