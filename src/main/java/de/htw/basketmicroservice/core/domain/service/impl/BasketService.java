@@ -24,8 +24,6 @@ public class BasketService implements IBasketService {
     @Override
     public BasketDTO getBasket(UUID basketId) {
         List<BasketItem> items = basketRepository.getItemsByBasketId(basketId);
-        System.out.println("BASKETSERVICE ####################");
-        System.out.println(items.size());
         return BasketDTO.builder()
                 .basketId(basketId.toString())
                 .totalPrice(calculateTotalPrice(items))
