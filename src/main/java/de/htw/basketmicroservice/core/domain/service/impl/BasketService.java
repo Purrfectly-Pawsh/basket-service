@@ -55,6 +55,17 @@ public class BasketService implements IBasketService {
         }
     }
 
+    @Override
+    public void transgerGuestToUserBasket(UUID guestBasketId, UUID userId) {
+        List<BasketItem> guestBasketItems = basketRepository.getItemsByBasketId(guestBasketId);
+        basketRepository.deleteItemsByBasketId(userId);
+        basketRepository.deleteItemsByBasketId(guestBasketId);
+        for (BasketItem basketItem : guestBasketItems) {
+            basketItem.setBasketId(userId);
+            basketRepository.save(basketItem);
+        }
+    }
+
     private int calculateNewQuantity(BasketItem newItem) {
         BasketItem existingItem = basketRepository.findById(newItem.getKey()).get();
         return existingItem.getQuantity() + newItem.getQuantity();

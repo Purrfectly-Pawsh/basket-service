@@ -14,4 +14,6 @@ public interface IBasketService {
    void removeBasketItem(UUID basketId, UUID itemId);
 
    void changeBasketItemQuantity(UUID basketId, UUID itemId, int quantity);
+
+   void transgerGuestToUserBasket(UUID guestBasketId, UUID userId);
 }

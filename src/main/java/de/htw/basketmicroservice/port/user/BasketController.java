@@ -35,4 +35,10 @@ public class BasketController {
         return basketService.getBasket(basketId);
     }
 
+    @PutMapping("baskets/{guestBasketId}")
+    public BasketDTO transferGuestToUserBasket(@PathVariable UUID guestBasketId, @RequestBody UUID userId) {
+        basketService.transgerGuestToUserBasket(guestBasketId, userId);
+        return basketService.getBasket(userId);
+    }
+
 }

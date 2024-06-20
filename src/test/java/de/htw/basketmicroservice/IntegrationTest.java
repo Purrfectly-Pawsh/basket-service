@@ -92,10 +92,12 @@ public class IntegrationTest {
     }
 
     private static final UUID BASKET_ID_ALICE = new UUID(10L, 10L);
+    private static final UUID BASKET_ID_ALICE_LOGIN = new UUID(20L, 20L);
     private static final UUID BASKET_ID_BOB = new UUID(11L, 11L);
     private static final UUID BASKET_ITEM_ID_1 = new UUID(1L, 1L);
     private static final UUID BASKET_ITEM_ID_2 = new UUID(2L, 1L);
     private static final UUID BASKET_ITEM_ID_3 = new UUID(3L, 1L);
+
 
 
     @AfterEach
@@ -173,5 +175,23 @@ public class IntegrationTest {
                 .and()
                 .body("basketItems[0].quantity", equalTo(5));
     }
+
+    @Test
+    void shouldOnlyContainTheItemsFromGuestBasketInUserBasketAfterTransferOnLogin() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(BASKET_ID_ALICE_LOGIN)
+                .put("v1/baskets/" + BASKET_ID_ALICE)
+                .then()
+                .statusCode(both(greaterThanOrEqualTo(200)).and(lessThan(300)));
+
+        List<BasketItem> aliceGuestBasket = basketRepository.getItemsByBasketId(BASKET_ID_ALICE);
+        List<BasketItem> aliceLoginBasket = basketRepository.getItemsByBasketId(BASKET_ID_ALICE_LOGIN);
+
+        assertThat(aliceLoginBasket.size()).isEqualTo(3);
+        assertThat(aliceGuestBasket.isEmpty()).isTrue();
+    }
+
+
 
 }
