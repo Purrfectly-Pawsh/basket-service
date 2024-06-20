@@ -4,6 +4,8 @@ import de.htw.basketmicroservice.core.domain.model.BasketItem;
 import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.UUID;
 
 
@@ -36,9 +38,10 @@ public class BasketController {
     }
 
     @PutMapping("baskets/{guestBasketId}")
-    public BasketDTO transferGuestToUserBasket(@PathVariable UUID guestBasketId, @RequestBody UUID userId) {
-        basketService.transgerGuestToUserBasket(guestBasketId, userId);
-        return basketService.getBasket(userId);
+    public BasketDTO transferGuestToUserBasket(@PathVariable UUID guestBasketId, @RequestBody String userId) {
+        UUID uuid = UUID.fromString(userId);
+        basketService.transgerGuestToUserBasket(guestBasketId, uuid);
+        return basketService.getBasket(uuid);
     }
 
 }

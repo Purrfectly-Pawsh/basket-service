@@ -5,8 +5,10 @@ import de.htw.basketmicroservice.core.domain.model.BasketItemKey;
 import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketRepository;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -56,13 +58,21 @@ public class BasketService implements IBasketService {
     }
 
     @Override
+    @Transactional
     public void transgerGuestToUserBasket(UUID guestBasketId, UUID userId) {
         List<BasketItem> guestBasketItems = basketRepository.getItemsByBasketId(guestBasketId);
         basketRepository.deleteItemsByBasketId(userId);
         basketRepository.deleteItemsByBasketId(guestBasketId);
-        for (BasketItem basketItem : guestBasketItems) {
-            basketItem.setBasketId(userId);
-            basketRepository.save(basketItem);
+        for (BasketItem guestBasketItem : guestBasketItems) {
+            BasketItem userItem = BasketItem.builder()
+                    .basketItemId(guestBasketItem.getBasketItemId())
+                    .basketId(userId)
+                    .name(guestBasketItem.getName())
+                    .unitPrice(guestBasketItem.getUnitPrice())
+                    .imageUrl(guestBasketItem.getImageUrl())
+                    .quantity(guestBasketItem.getQuantity())
+                    .build();
+            basketRepository.save(userItem);
         }
     }
 
