@@ -59,7 +59,7 @@ public class BasketService implements IBasketService {
 
     @Override
     @Transactional
-    public void transgerGuestToUserBasket(UUID guestBasketId, UUID userId) {
+    public void transferGuestToUserBasket(UUID guestBasketId, UUID userId) {
         List<BasketItem> guestBasketItems = basketRepository.getItemsByBasketId(guestBasketId);
         basketRepository.deleteItemsByBasketId(userId);
         basketRepository.deleteItemsByBasketId(guestBasketId);

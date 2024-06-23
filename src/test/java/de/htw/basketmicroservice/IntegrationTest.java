@@ -178,9 +178,11 @@ public class IntegrationTest {
 
     @Test
     void shouldOnlyContainTheItemsFromGuestBasketInUserBasketAfterTransferOnLogin() {
+        Map<String, Object> userId = new HashMap<>();
+        userId.put("userId", BASKET_ID_ALICE_LOGIN);
         given()
                 .contentType(ContentType.JSON)
-                .body(BASKET_ID_ALICE_LOGIN)
+                .body(userId)
                 .put("v1/baskets/" + BASKET_ID_ALICE)
                 .then()
                 .statusCode(both(greaterThanOrEqualTo(200)).and(lessThan(300)));
@@ -188,10 +190,8 @@ public class IntegrationTest {
         List<BasketItem> aliceGuestBasket = basketRepository.getItemsByBasketId(BASKET_ID_ALICE);
         List<BasketItem> aliceLoginBasket = basketRepository.getItemsByBasketId(BASKET_ID_ALICE_LOGIN);
 
-        assertThat(aliceLoginBasket.size()).isEqualTo(3);
         assertThat(aliceGuestBasket.isEmpty()).isTrue();
+        assertThat(aliceLoginBasket.size()).isEqualTo(3);
     }
-
-
 
 }
