@@ -11,4 +11,6 @@ public interface IBasketRepository extends CrudRepository<BasketItem, BasketItem
 
     List<BasketItem> getItemsByBasketId(UUID basketId);
 
+    void deleteItemsByBasketId(UUID basketId);
+
 }
