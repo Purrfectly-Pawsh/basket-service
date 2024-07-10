@@ -8,7 +8,6 @@ import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -74,6 +73,12 @@ public class BasketService implements IBasketService {
                     .build();
             basketRepository.save(userItem);
         }
+    }
+
+    @Override
+    @Transactional
+    public void removeBasket(UUID basketId) {
+        basketRepository.deleteItemsByBasketId(basketId);
     }
 
     private int calculateNewQuantity(BasketItem newItem) {
