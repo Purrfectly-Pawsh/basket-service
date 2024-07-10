@@ -18,7 +18,10 @@ public class SuccessfulOrderConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.CREATE_ORDER_QUEUE)
     public void receiveCreateOrderEvent(SuccessfulOrderMessage message) {
-        basketService.deleteBasket(UUID.fromString(message.getUserId()));
+        List<BasketItemKey> basketItemKeys = SuccessfulOrderMapper.toBasketItemKeys(message);
+        for (BasketItemKey basketItemKey : basketItemKeys) {
+            basketService.removeBasketItem(basketItemKey.getBasketId(), basketItemKey.getBasketItemId());
+        }
     }
 
 }
