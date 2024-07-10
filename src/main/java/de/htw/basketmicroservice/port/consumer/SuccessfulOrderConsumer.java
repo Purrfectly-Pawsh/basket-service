@@ -1,12 +1,10 @@
 package de.htw.basketmicroservice.port.consumer;
 
 import de.htw.basketmicroservice.config.RabbitMQConfig;
-import de.htw.basketmicroservice.core.domain.model.BasketItemKey;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
