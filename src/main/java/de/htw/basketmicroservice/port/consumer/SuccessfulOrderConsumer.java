@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class SuccessfulOrderConsumer {
@@ -19,10 +20,7 @@ public class SuccessfulOrderConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.CREATE_ORDER_QUEUE)
     public void receiveCreateOrderEvent(SuccessfulOrderMessage message) {
-        List<BasketItemKey> basketItemKeys = SuccessfulOrderMapper.toBasketItemKeys(message);
-        for (BasketItemKey basketItemKey : basketItemKeys) {
-            basketService.removeBasketItem(basketItemKey.getBasketId(), basketItemKey.getBasketItemId());
-        }
+        basketService.deleteBasket(UUID.fromString(message.getUserId()));
     }
 
 }
