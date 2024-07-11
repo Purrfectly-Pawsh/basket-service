@@ -1,9 +1,6 @@
 package de.htw.basketmicroservice.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +15,7 @@ public class RabbitMQConfig {
     public static final String ADD_PRODUCT_QUEUE = "add_product_queue";
     public static final String PRODUCT_EXCHANGE = "product_exchange";
 
-    public static final String CREATE_ORDER_QUEUE = "create_order_queue";
+    public static final String DELETE_BASKET_QUEUE = "delete_basket_queue";
     public static final String ORDER_EXCHANGE = "order_exchange";
 
     @Bean
@@ -27,8 +24,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue createOrderQueue() {
-        return new Queue(CREATE_ORDER_QUEUE, false);
+    public Queue deleteBasketQueue() {
+        return new Queue(DELETE_BASKET_QUEUE, false);
     }
 
     @Bean
@@ -36,8 +33,8 @@ public class RabbitMQConfig {
         return new TopicExchange(PRODUCT_EXCHANGE);
     }
 
-    @Bean TopicExchange orderTopicExchange() {
-        return new TopicExchange(ORDER_EXCHANGE);
+    @Bean FanoutExchange orderExchange() {
+        return new FanoutExchange(ORDER_EXCHANGE);
     }
 
     @Bean
@@ -46,7 +43,7 @@ public class RabbitMQConfig {
     }
 
     @Bean Binding bindCreateOrderQueue() {
-        return BindingBuilder.bind(createOrderQueue()).to(orderTopicExchange()).with("order.create");
+        return BindingBuilder.bind(deleteBasketQueue()).to(orderExchange());
     }
 
     @Bean
