@@ -6,7 +6,9 @@ import de.htw.basketmicroservice.core.domain.service.dto.BasketDTO;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketRepository;
 import de.htw.basketmicroservice.core.domain.service.inferfaces.IBasketService;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -14,6 +16,7 @@ import java.util.UUID;
 
 
 @Service
+@Slf4j
 public class BasketService implements IBasketService {
 
     private final IBasketRepository basketRepository;
@@ -78,7 +81,10 @@ public class BasketService implements IBasketService {
     @Override
     @Transactional
     public void removeBasket(UUID basketId) {
+        log.info("BasketID: {}", basketId.toString());
+        log.info("BEFORE: {}", getBasket(basketId));
         basketRepository.deleteItemsByBasketId(basketId);
+        log.info("AFTER: {}", getBasket(basketId));
     }
 
     private int calculateNewQuantity(BasketItem newItem) {
